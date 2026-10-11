@@ -21,5 +21,5 @@ y_limits = [1e-14, 1e1];
 
 %% Compute errors and generate figures
 
-results = s1_accuracy_functions( ...
+results = cfm.s1_accuracy_functions( ...
     k_values, x0, h_min, n_h, y_limits);
