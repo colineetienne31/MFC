@@ -1,0 +1,134 @@
+%% Section 2 — finite-volume potential flow
+clear; close all; clc;
+
+regime = 'all'; % choose 'subsonic', 'supersonic', 'transonic' or 'all'
+
+% =========================================================================
+% BLOCO ÚNICO DE PARÂMETROS
+% =========================================================================
+p.Tinf = 288; 
+p.pinf = 101325; 
+p.gamma = 1.4; 
+p.R = 287;
+p.c = 1; 
+p.tHalf = 0.03 * p.c;
+p.xAirfoil = 1; 
+p.xMax = 3; 
+p.yMax = 2;
+p.Nx = 120; 
+p.Ny = 80;
+
+% Definições do Solucionador
+p.solver = 'backslash';       % Opções: 'backslash', 'gmres', 'bicgstab'
+p.tolLinear = 1e-10; 
+p.maxitLinear = 1000;
+p.tolNonlinear = 1e-7; 
+p.maxitNonlinear = 300;
+p.relaxation = 0.35;
+p.makePlots = true;
+
+% Diretórios de saída
+outDir = fullfile(pwd, 'figures'); 
+if ~exist(outDir, 'dir'), mkdir(outDir); end
+
+resDir = fullfile(pwd, 'results'); 
+if ~exist(resDir, 'dir'), mkdir(resDir); end
+
+% Casos de estudo (Subsónico, Transónico, Supersónico)
+Mlist = [];
+if strcmpi(regime,'subsonic')
+    Mlist = [Mlist, 0.3];
+end
+if strcmpi(regime,'supersonic')
+    Mlist = [Mlist, 2.2];
+end
+if strcmpi(regime,'transonic')
+    Mlist = [Mlist, 0.91];
+end
+if strcmpi(regime,'all')
+    Mlist = [Mlist, 0.3,0.91,2.2];
+end
+
+sol = cell(size(Mlist));
+
+% =========================================================================
+% EXECUÇÃO DOS CASOS (Chamada às funções do módulo +cfm)
+% =========================================================================
+for m = 1:numel(Mlist)
+    sol{m} = cfm.solve_flow_fv(p, Mlist(m));
+    
+    fprintf('M_inf=%.2f: solver=%s, converged=%d, iterations=%d, residual=%.3e, Computational time=%.3d\n', ...
+        Mlist(m), sol{m}.solver, sol{m}.converged, sol{m}.iterations, sol{m}.residual);
+end
+
+% =========================================================================
+% PÓS-PROCESSAMENTO E GRÁFICOS
+% =========================================================================
+if p.makePlots
+    
+    for m = 1:numel(Mlist)
+        s = sol{m};
+        figure('Color', 'w', 'Position', [100, 200, 1200, 350]);
+        tiledlayout(1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
+        
+        % 1. Potencial (SEM a restrição clim, MATLAB faz auto-escala)
+        nexttile;
+        contourf(s.X, s.Y, s.phiNorm, 30, 'LineColor', 'none'); colorbar;
+        hold on; cfm.plot_airfoil(p); hold off;
+        axis equal tight; xlim([0 p.xMax]); ylim([0 p.yMax]);
+        xlabel('x (m)'); ylabel('y (m)');
+        title('\phi/(U_\infty c)');
+        
+        % 2. Mach Local (SEM a restrição clim, MATLAB faz auto-escala)
+        nexttile;
+        contourf(s.X, s.Y, s.Mlocal, 30, 'LineColor', 'none'); colorbar;
+        hold on; cfm.plot_airfoil(p); hold off;
+        axis equal tight; xlim([0 p.xMax]); ylim([0 p.yMax]);
+        xlabel('x (m)'); ylabel('y (m)'); title('Local Mach number');
+        
+        % 3. Densidade Relativa (SEM a restrição clim, MATLAB faz auto-escala)
+        nexttile;
+        contourf(s.X, s.Y, s.rhoRatio, 30, 'LineColor', 'none'); colorbar;
+        hold on; cfm.plot_airfoil(p); hold off;
+        axis equal tight; xlim([0 p.xMax]); ylim([0 p.yMax]);
+        xlabel('x (m)'); ylabel('y (m)'); title('\rho/\rho_\infty');
+        
+        sgtitle(sprintf('Finite-volume potential flow, M_\\infty=%.2f', Mlist(m)));
+        
+        % Exportar figura
+        exportgraphics(gcf, fullfile(outDir, sprintf('s2_flow_M_%g.pdf', Mlist(m))));
+    end
+end
+
+% =========================================================================
+% TABELA DE RESUMO (Métodos, Fronteiras e Solver)
+% =========================================================================
+Regime = ["Subsonic"; "Transonic"; "Supersonic"];
+Mach = Mlist(:);
+Fluxes = ["Central x, central y"; ...
+          "Central x if A>0, backward x if A<0; central y"; ...
+          "Backward/upwind x, central y"];
+Switch = ["None"; "A=1-Minf^2-(gamma+1)*Minf^2/Uinf*dphi/dx"; "None"];
+BoundaryA = ["phi=0"; "phi=0"; "phi=0 and dphi/dx=0"];
+BoundaryB = repmat("dphi/dy=0", 3, 1);
+BoundaryC = ["dphi/dx=0"; "dphi/dx=0"; "No imposed condition"];
+BoundaryD = repmat("dphi/dy=0", 3, 1);
+BoundaryE = repmat("dphi/dy=Uinf*dy_s/dx", 3, 1);
+Solver = repmat(string(p.solver), 3, 1);
+
+Convergence = strings(3, 1);
+Iterations = zeros(3, 1); 
+Residual = zeros(3, 1);
+
+for m = 1:3
+    Convergence(m) = string(sol{m}.converged);
+    Iterations(m) = sol{m}.iterations;
+    Residual(m) = sol{m}.residual;
+end
+
+summary = table(Regime, Mach, Fluxes, Switch, BoundaryA, BoundaryB, BoundaryC, BoundaryD, BoundaryE, ...
+    Solver, Convergence, Iterations, Residual);
+
+% Exportar tabela para CSV e mostrar na janela de comandos
+writetable(summary, fullfile(resDir, 's2_method_boundary_solver.csv'));
+disp(summary);
