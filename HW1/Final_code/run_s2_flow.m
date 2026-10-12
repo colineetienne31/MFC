@@ -1,7 +1,7 @@
 %% Section 2 — finite-volume potential flow
 clear; close all; clc;
 
-regime = 'all'; % choose 'subsonic', 'supersonic', 'transonic' or 'all'
+regime = 'subsonic'; % choose 'subsonic', 'supersonic', 'transonic' or 'all'
 
 % =========================================================================
 % BLOCO ÚNICO DE PARÂMETROS

@@ -1,7 +1,10 @@
 function sol = solve_flow_fv(p, Minf)
-    % solve_flow_fv Resolves the finite-volume potential flow for a given Mach number.
+    % This file creates a mesh grid and solves the matrix system for a given mach number.
+    % For the transonic case, an iteration scheme is used.
+    % It returns a structure that contains the values needed to plot the
+    % figures.
     
-    % 1. Geração da Malha e Geometria
+    % Grid and geometry
     dx = p.xMax / p.Nx;
     dy = p.yMax / p.Ny;
     x_faces = linspace(0, p.xMax, p.Nx + 1);
@@ -10,7 +13,7 @@ function sol = solve_flow_fv(p, Minf)
     y_centers = y_faces(1:end-1) + dy / 2;
     [X, Y] = meshgrid(x_centers, y_centers);
     
-    % Declive do perfil (condição de fronteira no fundo)
+    % slope of the airfoil profile
     slope = zeros(1, p.Nx);
     for i = 1:p.Nx
         x_pos = x_centers(i);
@@ -23,10 +26,8 @@ function sol = solve_flow_fv(p, Minf)
         end
     end
     
-    % Guardar dados da grelha numa estrutura para passar às outras funções
     grid.Nx = p.Nx; grid.Ny = p.Ny; grid.dx = dx; grid.dy = dy; grid.slope = slope;
-    
-    % 2. Parâmetros Base e Inicialização
+  
     U_inf = Minf * sqrt(p.gamma * p.R * p.Tinf);
     phi_current = zeros(p.Nx * p.Ny, 1);
     
@@ -34,30 +35,31 @@ function sol = solve_flow_fv(p, Minf)
     iterations = 0;
     residual = 1;
     tic;
-    % Ciclo iterativo para a não-linearidade (Transónico)
+    % Iteration for the non-linear problem (transonic)
     while ~converged && iterations < p.maxitNonlinear
         iterations = iterations + 1;
         
-        % Montar a matriz A e vetor b com base no phi atual (para calcular o dphi/dx no switch)
+        % create matrix A and vector b
         [A, b] = cfm.assemble_flow_matrix(grid, p, Minf, U_inf, phi_current);
         
-        % Resolver o sistema linear
+        % Solve the linear system
         [phi_new, ~, ~, ~] = cfm.solve_sparse_system(A, b, p);
         
-        % Aplicar relaxação
-        phi_new = p.relaxation * phi_new + (1 - p.relaxation) * phi_current;
-        
-        % Calcular resíduo (variação máxima)
+        if Minf >= 0.8 && Minf <= 1.2 
+            phi_new = p.relaxation*phi_new + (1-p.relaxation)*phi_current;
+            disp('done');
+        end
+
+        % residual
         residual = max(abs(phi_new - phi_current));
         phi_current = phi_new;
         
         if residual < p.tolNonlinear || Minf < 0.8 || Minf > 1.2
-            % Se for estritamente subsónico ou supersónico, é linear, logo converge numa iteração
             converged = true;
         end
     end
     
-    % 3. Pós-Processamento
+    % Calculate the temperature, pressure, density, and mach for each cell
     phi_matrix = reshape(phi_current, [p.Nx, p.Ny])';
     [v, u] = gradient(phi_matrix, dx, dy);
     q_sq = (U_inf + u).^2 + v.^2;
@@ -65,7 +67,7 @@ function sol = solve_flow_fv(p, Minf)
     T_ratio = 1 - ((p.gamma - 1) / 2) * Minf^2 * ((q_sq - U_inf^2) / U_inf^2);
     T_local = T_ratio * p.Tinf;
     
-    % Guardar os resultados na estrutura de saída esperada pelo script principal
+    % save the results in the output structure
     sol.X = X;
     sol.Y = Y;
     sol.phiNorm = phi_matrix / (U_inf * p.c);
