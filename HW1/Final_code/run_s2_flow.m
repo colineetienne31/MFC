@@ -4,7 +4,7 @@ clear; close all; clc;
 regime = 'subsonic'; % choose 'subsonic', 'supersonic', 'transonic' or 'all'
 
 % =========================================================================
-% BLOCO ÚNICO DE PARÂMETROS
+% Parameter Block
 % =========================================================================
 p.Tinf = 288; 
 p.pinf = 101325; 
@@ -18,8 +18,8 @@ p.yMax = 2;
 p.Nx = 120; 
 p.Ny = 80;
 
-% Definições do Solucionador
-p.solver = 'backslash';       % Opções: 'backslash', 'gmres', 'bicgstab'
+% Solver Settings
+p.solver = 'backslash';       % Options: 'backslash', 'gmres', 'bicgstab'
 p.tolLinear = 1e-10; 
 p.maxitLinear = 1000;
 p.tolNonlinear = 1e-7; 
@@ -27,14 +27,14 @@ p.maxitNonlinear = 300;
 p.relaxation = 0.35;
 p.makePlots = true;
 
-% Diretórios de saída
+% Output directories
 outDir = fullfile(pwd, 'figures'); 
 if ~exist(outDir, 'dir'), mkdir(outDir); end
 
 resDir = fullfile(pwd, 'results'); 
 if ~exist(resDir, 'dir'), mkdir(resDir); end
 
-% Casos de estudo (Subsónico, Transónico, Supersónico)
+% Cases studied (Subsonic, Transonic, Supersonic)
 Mlist = [];
 if strcmpi(regime,'subsonic')
     Mlist = [Mlist, 0.3];
@@ -52,7 +52,7 @@ end
 sol = cell(size(Mlist));
 
 % =========================================================================
-% EXECUÇÃO DOS CASOS (Chamada às funções do módulo +cfm)
+% EXECUTION OF TEST CASES (Calls to +cfm module functions)
 % =========================================================================
 
 for m = 1:numel(Mlist)
@@ -70,7 +70,7 @@ end
 
 
 % =========================================================================
-% PÓS-PROCESSAMENTO E GRÁFICOS
+% POST-PROCESSING AND GRAPHICS
 % =========================================================================
 if p.makePlots
     
@@ -79,7 +79,7 @@ if p.makePlots
         figure('Color', 'w', 'Position', [100, 200, 1200, 350]);
         tiledlayout(1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
         
-        % 1. Potencial (SEM a restrição clim, MATLAB faz auto-escala)
+        % 1. Potential
         nexttile;
         contourf(s.X, s.Y, s.phiNorm, 30, 'LineColor', 'none'); colorbar;
         hold on; cfm.plot_airfoil(p); hold off;
@@ -87,14 +87,14 @@ if p.makePlots
         xlabel('x (m)'); ylabel('y (m)');
         title('\phi/(U_\infty c)');
         
-        % 2. Mach Local (SEM a restrição clim, MATLAB faz auto-escala)
+        % 2. Local Mach
         nexttile;
         contourf(s.X, s.Y, s.Mlocal, 30, 'LineColor', 'none'); colorbar;
         hold on; cfm.plot_airfoil(p); hold off;
         axis equal tight; xlim([0 p.xMax]); ylim([0 p.yMax]);
         xlabel('x (m)'); ylabel('y (m)'); title('Local Mach number');
         
-        % 3. Densidade Relativa (SEM a restrição clim, MATLAB faz auto-escala)
+        % 3. Relative density 
         nexttile;
         contourf(s.X, s.Y, s.rhoRatio, 30, 'LineColor', 'none'); colorbar;
         hold on; cfm.plot_airfoil(p); hold off;
@@ -103,7 +103,7 @@ if p.makePlots
         
         sgtitle(sprintf('Finite-volume potential flow, M_\\infty=%.2f', Mlist(m)));
         
-        % Exportar figura
+        % Export figure
         exportgraphics(gcf, fullfile(outDir, sprintf('s2_flow_M_%g.pdf', Mlist(m))));
     end
 end

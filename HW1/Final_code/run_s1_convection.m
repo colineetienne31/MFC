@@ -22,7 +22,7 @@ u_exact_fn = @(x) exp(sin(0.2 * x));
 S_fn       = @(x) a_val * (0.2 * (cos (0.2 * x)) .* exp(sin(0.2 * x)));
 
 %% Baseline Grid Solution (N = 40)
-[x_ref, dx_ref, u_num_ref] = cfm.solve_advection_1d(L, N_ref, a_val, u_inlet, S_fn, scheme_x);
+[x_ref, dx_ref, u_num_ref] = solve_advection_1d(L, N_ref, a_val, u_inlet, S_fn, scheme_x);
 
 u_exact_ref = u_exact_fn(x_ref);
 local_error_ref = abs(u_num_ref - u_exact_ref);
@@ -63,7 +63,7 @@ if FULL
     err_Linf  = zeros(num_grids, 1);
 
     for k = 1:num_grids
-        [x_k, dx_k, u_num_k] = cfm.solve_advection_1d(L, N_values(k), a_val, u_inlet, S_fn, scheme_x);
+        [x_k, dx_k, u_num_k] = solve_advection_1d(L, N_values(k), a_val, u_inlet, S_fn, scheme_x);
         e_k = abs(u_num_k - u_exact_fn(x_k));
 
         dx_arr(k)   = dx_k;

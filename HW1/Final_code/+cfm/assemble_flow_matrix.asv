@@ -1,4 +1,4 @@
-function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev,boundaries)
+function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev)
     % assemble_flow_matrix Assembles the sparse system for potential flow.
     
     N_total = grid.Nx * grid.Ny;
@@ -12,7 +12,7 @@ function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev,boundaries
             k = i + (j - 1) * grid.Nx;
             b_val = 0;
             
-            % 1. Determinação do Esquema em x (O Switch Transónico)
+            % 1. Determining the Scheme in x (O Switch Transónico)
             % Cálculo da derivada dphi/dx na célula atual (diferenças centrais se possível)
             if i > 1 && i < grid.Nx
                 dphi_dx = (phi_prev(k + 1) - phi_prev(k - 1)) / (2 * grid.dx);
@@ -20,41 +20,41 @@ function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev,boundaries
                 dphi_dx = 0;
             end
             
-            % Avaliação da expressão A local
+            % Evaluation of the expression A local
             A_local = 1 - Minf^2 - ((p.gamma + 1) * Minf^2 / U_inf) * dphi_dx;
             
             if A_local >= 0
-                % Regime Localmente Subsónico -> Diferenças Centrais
+                % Locally Subsonic Regime -> Central Diferences
                 Cx = A_local / grid.dx^2;
                 a_W = Cx; a_E = Cx; a_N = Cy; a_S = Cy;
                 a_P = -2 * (Cx + Cy); a_WW = 0;
             else
-                % Regime Localmente Supersónico -> Diferenças Recuadas (Upwind)
-                Cx = -A_local / grid.dx^2; % Cx positivo para as contas upwind
+                % Locally Supersonic Regime -> Backward Differences (Upwind)
+                Cx = -A_local / grid.dx^2; % Cx positive for upwind problems
                 a_W = 2 * Cx; a_E = 0; a_N = Cy; a_S = Cy;
                 a_P = -(Cx + 2 * Cy); a_WW = -Cx;
             end
             
-            % 2. Condições de Fronteira Boundary conditions
-            if isa(boundaries{1}, 'true') & i == 1
-                % Entrada (Boundary A): Dirichlet
+            % 2. Boundary conditions
+            if i == 1
+                % Entry (Boundary A): Dirichlet
                 a_P = 1; a_W = 0; a_E = 0; a_N = 0; a_S = 0; a_WW = 0;
                 b_val = 0;
             else
-                if isa(boundaries{3}, 'true') & i == grid.Nx
-                    % Saída (Boundary C)
+                if i == grid.Nx
+                    % Exit (Boundary C)
                     if A_local >= 0
-                        % Subsónico: dphi/dx = 0 (Neumann)
+                        % Subsonic: dphi/dx = 0 (Neumann)
                         a_P = a_P + a_E; a_E = 0;
                     end
-                    % Se supersónico, a_E já é 0 (Sem condição imposta)
+                    % If supersonic, a_E is already 0 (Without any imposed condition)
                 end
-                if isa(boundaries{2}, 'true') & j == grid.Ny
-                    % Topo (Boundary B): dphi/dy = 0
+                if j == grid.Ny
+                    % Top (Boundary B): dphi/dy = 0
                     a_P = a_P + a_N; a_N = 0;         
                 end
                 if j == 1
-                    % Fundo (Boundary D e E): Escoamento tangente ao perfil
+                    % Bottom (Boundary D e E): Flow tangent to the profile
                     fluxo = U_inf * grid.slope(i);
                     a_P = a_P + a_S; 
                     b_val = b_val + a_S * grid.dy * fluxo; 
@@ -62,7 +62,7 @@ function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev,boundaries
                 end
             end
             
-            % 3. Preenchimento da matriz
+            % 3. Filling in the matrix
             A(k, k) = a_P;
             if a_W ~= 0,  A(k, k - 1) = a_W;  end
             if a_E ~= 0,  A(k, k + 1) = a_E;  end
