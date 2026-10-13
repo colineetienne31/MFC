@@ -28,6 +28,24 @@ p.makePlots = true;
 p.tolStationary = 1e-10;   % Relative linear residual tolerance
 p.maxitStationary = 2000; % Maximum GS sweeps per linear system
 
+% Parts to run besides the flow fields above (see +cfm/verification_study.m and +cfm/grid_study.m)
+DO_VERIF = true;             % verification: errors, observed orders, Mach-wave angle (quick)
+DO_EXPLO = true;             % exploration 1: grid-size study (slower)
+FULL     = true;             % true = full refinement lists in the exploration
+ 
+% Verification parameters
+v.Msup = 2.2;  v.Msub = 0.3;
+v.gridList = [30 20; 60 40; 120 80];     % h = dx = dy = xMax/Nx
+v.nb = 2;                                % boundary band (cells)
+v.yWave = [0.1 0.9];                     % y range used to measure the Mach-wave angle
+ 
+% Exploration 1: refine in x only, in y only, and in both (supersonic, exact solution)
+g.Minf = 2.2;
+g.reps = 3;                              % timing repetitions (minimum is kept)
+g.names = {'refine x', 'refine y', 'refine x and y'};
+g.lists = {[60 40; 120 40; 240 40], [60 40; 60 80; 60 160], [60 40; 120 80; 240 160]};
+if ~FULL, g.lists = cellfun(@(L) L(1:2,:), g.lists, 'UniformOutput', false); end
+
 % Optional exploration of the four algebraic solvers (transonic only).
 RUN_SOLVER_COMPARISON = false;  % true: produce figures of solvers study
 studySolvers = {'backslash', 'gmres', 'bicgstab', 'gauss-seidel'};
@@ -222,7 +240,13 @@ writetable(summary, ...
 disp(summary);
 
 % =========================================================================
-% OPTIONAL EXPLORATION: SOLVER COMPARISON
+% VERIFICATION AND FIRST EXPLORATION (independent of 'regime')
+% =========================================================================
+if DO_VERIF, verif = cfm.verification_study(p, v, outDir); end
+if DO_EXPLO, explo = cfm.grid_study(p, g, outDir); end
+
+% =========================================================================
+% OPTIONAL SECOND EXPLORATION: SOLVER COMPARISON
 % =========================================================================
 if RUN_SOLVER_COMPARISON
     pStudy = p;
