@@ -50,9 +50,12 @@ function sol = solve_flow_fv(p, Minf)
             disp('done');
         end
 
-        % residual
-        residual = max(abs(phi_new - phi_current));
         phi_current = phi_new;
+        % 6. update matrix A coefficients
+        [A_check, b_check] = cfm.assemble_flow_matrix( ...
+            grid, p, Minf, U_inf, phi_current);
+        % residual
+        residual = norm(A_check*phi_current - b_check, inf);
         
         if residual < p.tolNonlinear || Minf < 0.8 || Minf > 1.2
             converged = true;
