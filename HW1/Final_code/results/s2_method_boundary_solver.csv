@@ -1,2 +1,2 @@
 Regime,Mach,Fluxes,Switch,BoundaryA,BoundaryB,BoundaryC,BoundaryD,BoundaryE,Solver,Convergence,Iterations,Residual,Computational_time
-Subsonic,0.3,"Central x, central y",None,phi=0,dphi/dy=0,dphi/dx=0,dphi/dy=0,dphi/dy=Uinf*dy_s/dx,backslash,true,1,2.20363023658106,0.1328454
+Subsonic,0.3,"Central x, central y",None,phi=0,dphi/dy=0,dphi/dx=0,dphi/dy=0,dphi/dy=Uinf*dy_s/dx,backslash,true,1,4.91131144091079,0.1801263

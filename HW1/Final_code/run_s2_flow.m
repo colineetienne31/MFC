@@ -231,4 +231,3 @@ if RUN_SOLVER_COMPARISON
     cfm.compare_transonic_solvers(pStudy, studyMach, studySolvers, ...
         studyGridSize, outDir, resDir);
 end
-
