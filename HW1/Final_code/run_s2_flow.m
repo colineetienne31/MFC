@@ -80,7 +80,6 @@ sol = cell(size(Mlist));
 % =========================================================================
 for m = 1:numel(Mlist)
     
-    % Só substitui as tuas escolhas se estiveres a correr o regime 'all'
     if strcmpi(regime, 'all')
         if Mlist(m) < 0.8
             p.scheme_x = 'central';
