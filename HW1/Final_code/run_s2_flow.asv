@@ -1,8 +1,6 @@
 %% Section 2 — finite-volume potential flow
 clear; close all; clc;
 
-regime = 'subsonic'; % choose 'subsonic', 'supersonic', 'transonic' or 'all'
-
 % =========================================================================
 % Parameter Block
 % =========================================================================
@@ -34,20 +32,46 @@ if ~exist(outDir, 'dir'), mkdir(outDir); end
 resDir = fullfile(pwd, 'results'); 
 if ~exist(resDir, 'dir'), mkdir(resDir); end
 
-% Cases studied (Subsonic, Transonic, Supersonic)
-Mlist = [];
-if strcmpi(regime,'subsonic')
-    Mlist = [Mlist, 0.3];
+% =========================================================================
+% Regime Selection & Physical Configurations
+% =========================================================================
+regime = 'subsonic'; % Options: 'subsonic', 'supersonic', 'transonic', 'all'
+
+% Invariant boundary conditions and transverse scheme
+p.scheme_y   = 'central';     % Central differences along y
+p.bc_inlet   = 'dirichlet';   % Boundary A (Inlet, x = 0): phi = 0
+p.bc_top     = 'neumann';     % Boundary B (Top, y = yMax): dphi/dy = 0
+p.bc_bottom  = 'tangent';     % Boundary D/E (Bottom / Airfoil): flow tangency
+
+% Regime-dependent physical defaults
+if strcmpi(regime, 'subsonic')
+    Mlist       = [0.3];
+    p.scheme_x  = 'central';
+    p.bc_outlet = 'neumann';
+
+elseif strcmpi(regime, 'supersonic')
+    Mlist       = [2.2];
+    p.scheme_x  = 'backward';
+    p.bc_outlet = 'extrapolation';
+
+elseif strcmpi(regime, 'transonic')
+    Mlist       = [0.91];
+    p.scheme_x  = 'transonic_switch';
+    p.bc_outlet = 'neumann';
+
+elseif strcmpi(regime, 'all')
+    Mlist       = [0.3, 0.91, 2.2];
 end
-if strcmpi(regime,'supersonic')
-    Mlist = [Mlist, 2.2];
-end
-if strcmpi(regime,'transonic')
-    Mlist = [Mlist, 0.91];
-end
-if strcmpi(regime,'all')
-    Mlist = [Mlist, 0.3,0.91,2.2];
-end
+
+% -------------------------------------------------------------------------
+% Manual overrides for parametric testing
+% (Uncomment any line below to override the regime default settings)
+% -------------------------------------------------------------------------
+% p.scheme_x  = 'backward';       % Force backward/upwind scheme (e.g. test instability in subsonic)
+% p.scheme_x  = 'central';        % Force central scheme
+% p.scheme_x  = 'transonic_switch';% Force dynamic switch
+% p.bc_outlet = 'extrapolation';  % Force free outflow (no boundary constraint imposed)
+% p.bc_outlet = 'neumann';        % Force zero normal derivative (dphi/dx = 0)
 
 sol = cell(size(Mlist));
 
@@ -56,6 +80,18 @@ sol = cell(size(Mlist));
 % =========================================================================
 
 for m = 1:numel(Mlist)
+
+    if Mlist(m) < 0.8
+        p.scheme_x = 'central';
+        p.bc_outlet = 'neumann';
+    elseif Mlist(m) > 1.2
+        p.scheme_x = 'backward';
+        p.bc_outlet = 'extrapolation';
+    else
+        p.scheme_x = 'transonic_switch'; 
+        p.bc_outlet = 'neumann';
+    end
+
     sol{m} = cfm.solve_flow_fv(p, Mlist(m));
 
     fprintf(['M_inf=%.2f: solver=%s, converged=%d, ' ...
