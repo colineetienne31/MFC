@@ -20,16 +20,16 @@ p.Ny = 80;
 p.solver = 'backslash';       % Options: 'backslash', 'gmres', 'bicgstab', 'gauss-seidel'
 p.tolLinear = 1e-10; 
 p.maxitLinear = 1000;
-% Stationary linear solvers (Gauss-Seidel and SOR), independent of nonlinear relaxation:
-p.tolStationary = 1e-10;   % Relative linear residual tolerance
-p.maxitStationary = 2000; % Maximum GS sweeps per linear system
 p.tolNonlinear = 1e-7; 
 p.maxitNonlinear = 400;
 p.relaxation = 0.09;
 p.makePlots = true;
+% Stationary linear solver (Gauss-Seidel)
+p.tolStationary = 1e-10;   % Relative linear residual tolerance
+p.maxitStationary = 2000; % Maximum GS sweeps per linear system
 
-% Optional exploration of the five algebraic solvers (transonic only).
-RUN_SOLVER_COMPARISON = true;  % true: produce three comparison figures
+% Optional exploration of the four algebraic solvers (transonic only).
+RUN_SOLVER_COMPARISON = true;  % true: produce figures of solvers study
 studySolvers = {'backslash', 'gmres', 'bicgstab', 'gauss-seidel'};
 studyGridSize = [60 40]; % [Nx Ny]; increase for refined-mesh study
 studyMach = 0.91;
