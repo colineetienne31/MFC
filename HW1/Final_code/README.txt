@@ -49,12 +49,7 @@ Outputs:
   - figures/s2_flow_M_0.3.pdf                          : Subsonic potential, local Mach, density ratio
   - figures/s2_flow_M_0.91.pdf                         : Transonic flow field and local supersonic pocket
   - figures/s2_flow_M_2.2.pdf                          : Supersonic flow field and Mach wave reflections
-  - figures/s2_solver_residual_vs_iteration_linear.pdf : Residual evolution in terms of iterations in linear scale
-  - figures/s2_solver_residual_vs_iteration_log.pdf    : Residual decay in terms of iterations in log scale
-  - figures/s2_solver_residual_vs_time_linear.pdf      : Residual decay in terms of computational time in linear scale
-  - figures/s2_solver_residual_vs_time_log.pdf         : Residual decay in terms of computational time in log scale
   - results/s2_method_boundary_solver.csv              : Summary table of iterations, residuals, and solver time
-  - results/s2_solver_comparison.csv                   : Summary table of iterations, residuals, maximum mach number, solver time, and convergence
 
 Optional Studies (set in the parameter block at the top of run_s2_flow.m):
   - Set p.DO_VERIF = true:
@@ -64,7 +59,7 @@ Optional Studies (set in the parameter block at the top of run_s2_flow.m):
       Produces: figures/s2_grid_study_cost.pdf
       Prints: Mesh refinement cost vs error table (LaTeX table format)
   - Set p.RUN_SOLVER_COMPARISON = true:
-      Produces: figures/s2_solver_residual_vs_iteration_linear.pdf; figures/s2_solver_residual_vs_iteration_log.pdf; figures/s2_solver_residual_vs_time_linear.pdf; figures/s2_solver_residual_vs_time_log.pdf
+      Produces: figures/s2_solver_residual_vs_iteration_linear.pdf; figures/s2_solver_residual_vs_iteration_log.pdf; figures/s2_solver_residual_vs_time_linear.pdf; figures/s2_solver_residual_vs_time_log.pdf; results/s2_solver_comparison.csv
       Prints: table of iterations, residuals, maximum mach number, solver time, and convergence
 ===========================================================================
 
