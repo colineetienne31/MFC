@@ -34,6 +34,13 @@ function sol = solve_flow_fv(p, Minf)
     converged = false;
     iterations = 0;
     residual = 1;
+    
+    % Optional diagnostics: recording only, with no changes to the solver.
+    recordSolverHistory = isfield(p, 'recordSolverHistory') && p.recordSolverHistory;
+    if recordSolverHistory
+        residualHistory = zeros(p.maxitNonlinear, 1);
+        elapsedHistory = zeros(p.maxitNonlinear, 1);
+    end
     tic;
     % Iteration for the non-linear problem (transonic)
     while ~converged && iterations < p.maxitNonlinear
@@ -47,7 +54,9 @@ function sol = solve_flow_fv(p, Minf)
         
         if Minf >= 0.8 && Minf <= 1.2 
             phi_new = p.relaxation*phi_new + (1-p.relaxation)*phi_current;
-            disp('done');
+            if ~(isfield(p, 'silentSolver') && p.silentSolver)
+                disp('done');
+            end
         end
 
         phi_current = phi_new;
@@ -56,6 +65,10 @@ function sol = solve_flow_fv(p, Minf)
             grid, p, Minf, U_inf, phi_current);
         % residual
         residual = norm(A_check*phi_current - b_check, inf);
+        if recordSolverHistory
+            residualHistory(iterations) = residual;
+            elapsedHistory(iterations) = toc;
+        end
         
         if residual < p.tolNonlinear || Minf < 0.8 || Minf > 1.2
             converged = true;
@@ -81,4 +94,8 @@ function sol = solve_flow_fv(p, Minf)
     sol.iterations = iterations;
     sol.residual = residual;
     sol.computationalTime = toc;
+    if recordSolverHistory
+        sol.residualHistory = residualHistory(1:iterations);
+        sol.elapsedHistory = elapsedHistory(1:iterations);
+    end
 end
