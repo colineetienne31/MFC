@@ -29,7 +29,7 @@ p.tolStationary = 1e-10;   % Relative linear residual tolerance
 p.maxitStationary = 2000; % Maximum GS sweeps per linear system
 
 % Optional exploration of the four algebraic solvers (transonic only).
-RUN_SOLVER_COMPARISON = true;  % true: produce figures of solvers study
+RUN_SOLVER_COMPARISON = false;  % true: produce figures of solvers study
 studySolvers = {'backslash', 'gmres', 'bicgstab', 'gauss-seidel'};
 studyGridSize = [60 40]; % [Nx Ny]; increase for refined-mesh study
 studyMach = 0.91;
