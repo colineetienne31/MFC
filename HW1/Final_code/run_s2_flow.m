@@ -21,8 +21,8 @@ p.solver = 'backslash';       % Options: 'backslash', 'gmres', 'bicgstab'
 p.tolLinear = 1e-10; 
 p.maxitLinear = 1000;
 p.tolNonlinear = 1e-7; 
-p.maxitNonlinear = 300;
-p.relaxation = 0.35;
+p.maxitNonlinear = 5000;
+p.relaxation = 0.09;
 p.makePlots = true;
 
 % Output directories
