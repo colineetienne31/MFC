@@ -17,13 +17,22 @@ p.Nx = 120;
 p.Ny = 80;
 
 % Solver Settings
-p.solver = 'backslash';       % Options: 'backslash', 'gmres', 'bicgstab'
+p.solver = 'backslash';       % Options: 'backslash', 'gmres', 'bicgstab', 'gauss-seidel'
 p.tolLinear = 1e-10; 
 p.maxitLinear = 1000;
+% Stationary linear solvers (Gauss-Seidel and SOR), independent of nonlinear relaxation:
+p.tolStationary = 1e-10;   % Relative linear residual tolerance
+p.maxitStationary = 2000; % Maximum GS sweeps per linear system
 p.tolNonlinear = 1e-7; 
-p.maxitNonlinear = 5000;
+p.maxitNonlinear = 400;
 p.relaxation = 0.09;
 p.makePlots = true;
+
+% Optional exploration of the five algebraic solvers (transonic only).
+RUN_SOLVER_COMPARISON = true;  % true: produce three comparison figures
+studySolvers = {'backslash', 'gmres', 'bicgstab', 'gauss-seidel'};
+studyGridSize = [60 40]; % [Nx Ny]; increase for refined-mesh study
+studyMach = 0.91;
 
 % Output directories
 outDir = fullfile(pwd, 'figures'); 
@@ -211,3 +220,15 @@ writetable(summary, ...
     fullfile(resDir, 's2_method_boundary_solver.csv'));
 
 disp(summary);
+
+% =========================================================================
+% OPTIONAL EXPLORATION: SOLVER COMPARISON
+% =========================================================================
+if RUN_SOLVER_COMPARISON
+    pStudy = p;
+    pStudy.scheme_x = 'transonic_switch';
+    pStudy.bc_outlet = 'neumann';
+    cfm.compare_transonic_solvers(pStudy, studyMach, studySolvers, ...
+        studyGridSize, outDir, resDir);
+end
+
