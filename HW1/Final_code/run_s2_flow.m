@@ -62,7 +62,7 @@ if ~exist(resDir, 'dir'), mkdir(resDir); end
 % =========================================================================
 % Regime Selection & Physical Configurations
 % =========================================================================
-regime = 'transonic'; % Options: 'subsonic', 'supersonic', 'transonic', 'all'
+regime = 'subsonic'; % Options: 'subsonic', 'supersonic', 'transonic', 'all'
 
 % Invariant boundary conditions and transverse scheme
 p.scheme_y   = 'central';     % Central differences along y
@@ -95,8 +95,8 @@ end
 % (Uncomment any line below to override the regime default settings)
 % -------------------------------------------------------------------------
 % p.scheme_x  = 'backward';       % Force backward/upwind scheme (e.g. test instability in subsonic)
-% p.scheme_x  = 'central';        % Force central scheme
- p.scheme_x  = 'transonic_switch';% Force dynamic switch
+ p.scheme_x  = 'central';        % Force central scheme
+% p.scheme_x  = 'transonic_switch';% Force dynamic switch
 % p.bc_outlet = 'extrapolation';  % Force free outflow (no boundary constraint imposed)
 % p.bc_outlet = 'neumann';        % Force zero normal derivative (dphi/dx = 0)
 

@@ -1,2 +1,2 @@
 Regime,Mach,Fluxes,Switch,BoundaryA,BoundaryB,BoundaryC,BoundaryD,BoundaryE,Solver,Convergence,Iterations,Residual,Computational_time
-Transonic,0.91,"Central x if A>=0, backward x if A<0; central y",A=1-Minf^2-(gamma+1)*Minf^2/Uinf*dphi/dx,phi=0,dphi/dy=0,dphi/dx=0,dphi/dy=0,dphi/dy=Uinf*dy_s/dx,backslash,true,726,9.76579030975699e-08,140.6583796
+Subsonic,0.3,"Central x, central y",None,phi=0,dphi/dy=0,dphi/dx=0,dphi/dy=0,dphi/dy=Uinf*dy_s/dx,backslash,true,1,4.91131144091079,0.2536964
