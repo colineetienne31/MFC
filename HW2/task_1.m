@@ -86,7 +86,7 @@ function u_new = RK4_central(u,dt,a,dx)
     u_new = u + (dt/6)*(k1+2*k2+2*k3+k4);
 end
 
-function u_new = RK3_cental(u,dt,a,dx)
+function u_new = RK3_central(u,dt,a,dx)
     k1 = RK_operator(a,u,dx);
     k2 = RK_operator(a,u+dt*k1/2,dx);
     k3 = RK_operator(a,u-dt*k1+2*dt*k2,dx);
@@ -94,78 +94,150 @@ function u_new = RK3_cental(u,dt,a,dx)
 end
 
 
-%% 4. Run simulations
+%% Error evolution over time
+fig_solutions = figure;
+fig_errors = figure;
 
-figure;
+time = (0:N2_steps)' * dt;
 
+scheme_names = {'Explicit Upwind', ...
+                'RK3 Central', ...
+                'RK4 Central', ...
+                'Implicit Upwind', ...
+                'Implicit Central'};
+
+% Repeat for both initial conditions
 for p = 1:2
 
     u0 = initial_conditions{p};
+    u0 = u0(:);
 
-    for rev = 1:2
+    % Initialize solutions
+    U = repmat(u0, 1, 5);
 
-        if rev == 1
-            nsteps = N1_steps;
+    % Store errors (rows = time, columns = scheme)
+    error_L1 = zeros(N2_steps+1, 5);
+    error_Linf = zeros(N2_steps+1, 5);
+
+    for n = 0:N2_steps
+
+        % Current time
+        t = n * dt;
+
+        % Exact solution with periodic boundaries
+        x_shifted = mod(x - a*t + 100, L) - 100;
+
+        if p == 1
+            u_exact = 0.5 * exp( ...
+                -log(2)*(x_shifted/3).^2);
+            u_exact = u_exact(:);
         else
-            nsteps = N2_steps;
+            u_exact = 0.5 * double(abs(x_shifted) <= 10);
+            u_exact = u_exact(:);
         end
 
-        % Initialize each numerical solution
-        u_exp_upwind = u0;
-        u_rk4_central = u0;
-        u_imp_upwind = u0;
-        u_imp_central = u0;
-        u_rk3_central = u0;
+        % Compute errors for each scheme
+        for s = 1:5
 
-        % Time integration
-        for n = 1:nsteps
+            difference = abs(U(:,s) - u_exact);
 
-            % Explicit Euler + Upwind
-            u_exp_upwind = explicit_upwind(u_exp_upwind, nu);
-
-            % RK4 + Central differences
-            u_rk4_central = RK4_central(u_rk4_central, dt, a, dx);
-
-            % Implicit Euler + Upwind
-            u_imp_upwind = implicit_upwind(u_imp_upwind,nu,N);
-
-            % Implicit Euler + Central
-            u_imp_central = implicit_central(u_imp_central,nu,N);
-
-            % RK3 + central
-            u_rk3_central = RK3_cental(u_rk3_central,dt,a,dx);
+            error_L1(n+1,s) = mean(difference);
+            error_Linf(n+1,s) = max(difference);
 
         end
+        
+        if n==N1_steps
+            % Plot solutions for 1 revolution
+            figure(fig_solutions);
+            subplot(2,2,(p-1)*2 + 1);
+            hold on;
+    
+            plot(x, u_exact, 'k--', 'LineWidth', 2);
+    
+            plot(x, U(:,1), 'b-', 'LineWidth', 1.2);
+            plot(x,U(:,2), 'r-', 'LineWidth', 1.2);
+            plot(x,U(:,3), 'g-', 'LineWidth', 1.2);
+            plot(x,U(:,4), 'm-', 'LineWidth', 1.2);
+            plot(x,U(:,5),'c-', 'LineWidth', 1.2);
+            xlim([-35 35]);
+            xlabel('x');
+            ylabel('u');
+    
+            title(sprintf('%s, t = %.0fs', ...
+                pulse_names{p}, n*dt));
+    
+            legend('Exact solution', ...
+                   'Explicit Upwind', ...
+                   'RK3 Central', ...
+                   'RK4 Central', ...
+                   'Implicit Upwind', ...
+                   'Implicit Central', ...
+                   'Location', 'best');
+            grid on;
+            hold off;           
+        end
 
-        % Plot solutions
-        subplot(2,2,(p-1)*2 + rev);
-        hold on;
+        if n==N2_steps
+            % Plot solutions for 2 revolutions
+            subplot(2,2,(p-1)*2 + 2);
+            hold on;
+    
+            plot(x, u_exact, 'k--', 'LineWidth', 2);
+    
+            plot(x, U(:,1), 'b-', 'LineWidth', 1.2);
+            plot(x,U(:,2), 'r-', 'LineWidth', 1.2);
+            plot(x,U(:,3), 'g-', 'LineWidth', 1.2);
+            plot(x,U(:,4), 'm-', 'LineWidth', 1.2);
+            plot(x,U(:,5),'c-', 'LineWidth', 1.2);
+            xlim([-35 35]);
+            xlabel('x');
+            ylabel('u');
+    
+            title(sprintf('%s, t = %.0fs', ...
+                pulse_names{p}, n*dt));
+    
+            legend('Exact solution', ...
+                   'Explicit Upwind', ...
+                   'RK3 Central', ...
+                   'RK4 Central', ...
+                   'Implicit Upwind', ...
+                   'Implicit Central', ...
+                   'Location', 'best');
+            grid on;
+            hold off;
+            break;
+            
+        end
 
-        plot(x, u0, 'k--', 'LineWidth', 2);
+        % Advance all schemes one time step
+        U(:,1) = explicit_upwind(U(:,1), nu);
 
-        plot(x, u_exp_upwind, 'b-', 'LineWidth', 1.2);
-        plot(x, u_rk4_central, 'r-', 'LineWidth', 1.2);
-        plot(x, u_imp_upwind, 'g-', 'LineWidth', 1.2);
-        plot(x, u_imp_central, 'm-', 'LineWidth', 1.2);
-        plot(x, u_rk3_central, 'c-', 'LineWidth', 1.2);
+        U(:,2) = RK3_central(U(:,2), dt, a, dx);
 
-        xlim([-35 35]);
-        xlabel('x');
-        ylabel('u');
+        U(:,3) = RK4_central(U(:,3), dt, a, dx);
 
-        title(sprintf('%s, t = %.0f', ...
-            pulse_names{p}, nsteps*dt));
+        U(:,4) = implicit_upwind(U(:,4),nu,N);
 
-        legend('Exact solution', ...
-               'Explicit Upwind', ...
-               'RK4 Central', ...
-               'Implicit Upwind', ...
-               'Implicit Central', ...
-               'RK3 Central', ...
-               'Location', 'best');
-
-        grid on;
-        hold off;
+        U(:,5) = implicit_central(U(:,5),nu,N);
 
     end
+    
+    figure(fig_errors);
+    subplot(1,2,1);
+    plot(time, error_L1, 'LineWidth', 1.5);
+    xlabel('Time');
+    ylabel('Mean absolute error');
+    title([pulse_names{p}, ' - L1 error']);
+    legend(scheme_names, 'Location', 'best');
+    grid on;
+
+    subplot(1,2,2);
+    plot(time, error_Linf, 'LineWidth', 1.5);
+    xlabel('Time');
+    ylabel('Maximum absolute error');
+    title([pulse_names{p}, ' - L infinity error']);
+    legend(scheme_names, 'Location', 'best');
+    grid on;
+
+    sgtitle(['Error evolution - ', pulse_names{p}]);
 end
