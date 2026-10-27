@@ -96,7 +96,7 @@ end
 
 %% Error evolution over time
 fig_solutions = figure;
-fig_errors = figure;
+%fig_errors = figure;  %supressed bc its crushing the other graph (line 225)
 
 time = (0:N2_steps)' * dt;
 
@@ -222,7 +222,8 @@ for p = 1:2
 
     end
     
-    figure(fig_errors);
+    %figure(fig_errors);  %comment line 99 
+    figure;
     subplot(1,2,1);
     plot(time, error_L1, 'LineWidth', 1.5);
     xlabel('Time');
