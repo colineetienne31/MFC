@@ -289,16 +289,10 @@ function fig = square_figure()
         'PaperPositionMode','auto');
 end
 
-<<<<<<< HEAD
-%% Error evolution over time
-fig_solutions = figure;
-%fig_errors = figure;  %supressed bc its crushing the other graph (line 225)
-=======
 function save_figure(fig,folder,basename)
     exportgraphics(fig,fullfile(folder,[basename,'.png']),'Resolution',300);
     savefig(fig,fullfile(folder,[basename,'.fig']));
 end
->>>>>>> 0280085 (updated the code for ex1 and added the figures)
 
 % Conservative periodic Lax-Wendroff update
 function u_new = lax_wendroff(u,nu)
@@ -316,145 +310,7 @@ function u_new = beam_warming(u,nu)
               + (nu^2/2)*(u-2*um+um2);
 end
 
-<<<<<<< HEAD
-% Repeat for both initial conditions
-for p = 1:2
-
-    u0 = initial_conditions{p};
-    u0 = u0(:);
-
-    % Initialize solutions
-    U = repmat(u0, 1, 5);
-
-    % Store errors (rows = time, columns = scheme)
-    error_L1 = zeros(N2_steps+1, 5);
-    error_Linf = zeros(N2_steps+1, 5);
-
-    for n = 0:N2_steps
-
-        % Current time
-        t = n * dt;
-
-        % Exact solution with periodic boundaries
-        x_shifted = mod(x - a*t + 100, L) - 100;
-
-        if p == 1
-            u_exact = 0.5 * exp( ...
-                -log(2)*(x_shifted/3).^2);
-            u_exact = u_exact(:);
-        else
-            u_exact = 0.5 * double(abs(x_shifted) <= 10);
-            u_exact = u_exact(:);
-        end
-
-        % Compute errors for each scheme
-        for s = 1:5
-
-            difference = abs(U(:,s) - u_exact);
-
-            error_L1(n+1,s) = mean(difference);
-            error_Linf(n+1,s) = max(difference);
-
-        end
-        
-        if n==N1_steps
-            % Plot solutions for 1 revolution
-            figure(fig_solutions);
-            subplot(2,2,(p-1)*2 + 1);
-            hold on;
-    
-            plot(x, u_exact, 'k--', 'LineWidth', 2);
-    
-            plot(x, U(:,1), 'b-', 'LineWidth', 1.2);
-            plot(x,U(:,2), 'r-', 'LineWidth', 1.2);
-            plot(x,U(:,3), 'g-', 'LineWidth', 1.2);
-            plot(x,U(:,4), 'm-', 'LineWidth', 1.2);
-            plot(x,U(:,5),'c-', 'LineWidth', 1.2);
-            xlim([-35 35]);
-            xlabel('x');
-            ylabel('u');
-    
-            title(sprintf('%s, t = %.0fs', ...
-                pulse_names{p}, n*dt));
-    
-            legend('Exact solution', ...
-                   'Explicit Upwind', ...
-                   'RK3 Central', ...
-                   'RK4 Central', ...
-                   'Implicit Upwind', ...
-                   'Implicit Central', ...
-                   'Location', 'best');
-            grid on;
-            hold off;           
-        end
-
-        if n==N2_steps
-            % Plot solutions for 2 revolutions
-            subplot(2,2,(p-1)*2 + 2);
-            hold on;
-    
-            plot(x, u_exact, 'k--', 'LineWidth', 2);
-    
-            plot(x, U(:,1), 'b-', 'LineWidth', 1.2);
-            plot(x,U(:,2), 'r-', 'LineWidth', 1.2);
-            plot(x,U(:,3), 'g-', 'LineWidth', 1.2);
-            plot(x,U(:,4), 'm-', 'LineWidth', 1.2);
-            plot(x,U(:,5),'c-', 'LineWidth', 1.2);
-            xlim([-35 35]);
-            xlabel('x');
-            ylabel('u');
-    
-            title(sprintf('%s, t = %.0fs', ...
-                pulse_names{p}, n*dt));
-    
-            legend('Exact solution', ...
-                   'Explicit Upwind', ...
-                   'RK3 Central', ...
-                   'RK4 Central', ...
-                   'Implicit Upwind', ...
-                   'Implicit Central', ...
-                   'Location', 'best');
-            grid on;
-            hold off;
-            break;
-            
-        end
-
-        % Advance all schemes one time step
-        U(:,1) = explicit_upwind(U(:,1), nu);
-
-        U(:,2) = RK3_central(U(:,2), dt, a, dx);
-
-        U(:,3) = RK4_central(U(:,3), dt, a, dx);
-
-        U(:,4) = implicit_upwind(U(:,4),nu,N);
-
-        U(:,5) = implicit_central(U(:,5),nu,N);
-
-    end
-    
-    %figure(fig_errors);  %comment line 99 
-    figure;
-    subplot(1,2,1);
-    plot(time, error_L1, 'LineWidth', 1.5);
-    xlabel('Time');
-    ylabel('Mean absolute error');
-    title([pulse_names{p}, ' - L1 error']);
-    legend(scheme_names, 'Location', 'best');
-    grid on;
-
-    subplot(1,2,2);
-    plot(time, error_Linf, 'LineWidth', 1.5);
-    xlabel('Time');
-    ylabel('Maximum absolute error');
-    title([pulse_names{p}, ' - L infinity error']);
-    legend(scheme_names, 'Location', 'best');
-    grid on;
-
-    sgtitle(['Error evolution - ', pulse_names{p}]);
-=======
 % LW-BW constant-b blend
 function u_new = lw_bw_blend(u,nu,b)
     u_new = (1-b)*lax_wendroff(u,nu) + b*beam_warming(u,nu);
->>>>>>> 0280085 (updated the code for ex1 and added the figures)
 end
