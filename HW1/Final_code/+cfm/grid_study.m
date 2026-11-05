@@ -8,7 +8,13 @@ function out = grid_study(p, g, outDir)
         res.grid = L;  res.N = L(:,1) .* L(:,2);
         res.err = zeros(n, 1);  res.time = zeros(n, 1);
         for k = 1:n
-            q = p;  q.Nx = L(k,1);  q.Ny = L(k,2);
+            q = p;
+            q.Nx = L(k,1);
+            q.Ny = L(k,2);
+            
+            % Configure the supersonic verification problem
+            q.scheme_x  = 'backward';
+            q.bc_outlet = 'extrapolation';
             t = inf;
             for rep = 1:g.reps                      % minimum over repetitions reduces timing noise
                 tic; s = cfm.solve_flow_fv(q, g.Minf); t = min(t, toc);

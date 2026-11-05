@@ -31,7 +31,20 @@ function [A, b] = assemble_flow_matrix(grid, p, Minf, U_inf, phi_prev)
                 dphi_dx = (phi_prev(k) - phi_prev(k - 1)) / grid.dx;
             end
             
-            A_local = 1 - Minf^2 - ((p.gamma + 1) * Minf^2 / U_inf) * dphi_dx;
+            % Longitudinal compressibility coefficient
+            if strcmpi(p.scheme_x, 'transonic_switch')
+            
+                % Nonlinear transonic small-disturbance equation
+                A_local = 1 - Minf^2 - ...
+                    ((p.gamma + 1) * Minf^2 / U_inf) * dphi_dx;
+
+            else
+            
+                % Linear potential equation:
+                % subsonic and supersonic regimes
+                A_local = 1 - Minf^2;
+            
+            end
             
             % Seleção do esquema longitudinal
             if strcmpi(p.scheme_x, 'central')

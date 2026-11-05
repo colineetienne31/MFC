@@ -76,9 +76,16 @@ end
 
 function plot_accuracy(h, err_backward, err_central, ...
                        TE_backward, TE_central, m, y_limits)
-% Plots finite-difference errors and leading-order truncation errors.
+% Plots finite-difference errors and saves figures as PDFs.
 
-    figure;
+    % Create figures folder if it does not exist
+    outDir = 'figures';
+    if ~exist(outDir, 'dir')
+        mkdir(outDir);
+    end
+
+    % Generate figure
+    fig = figure;
 
     loglog(h, err_backward, '-', 'LineWidth', 1.5);
     hold on;
@@ -99,9 +106,14 @@ function plot_accuracy(h, err_backward, err_central, ...
            'Central-2 error', ...
            'Backward-1 leading TE', ...
            'Central-2 leading TE', ...
-           'Location', 'best', 'FontSize', 15);
+           'Location', 'best', 'FontSize', 14);
 
     grid on;
     title(sprintf('Function f_%d: FD errors at x = %g', m, 40), ...
           'FontSize', 16);
+
+    % Save figure as PDF
+    filename = fullfile(outDir, sprintf('s1_accuracy_f%d.pdf', m));
+    exportgraphics(fig, filename, 'ContentType', 'vector');
+
 end

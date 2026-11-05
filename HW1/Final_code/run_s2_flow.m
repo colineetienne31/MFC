@@ -47,7 +47,7 @@ g.lists = {[60 40; 120 40; 240 40], [60 40; 60 80; 60 160], [60 40; 120 80; 240 
 if ~FULL, g.lists = cellfun(@(L) L(1:2,:), g.lists, 'UniformOutput', false); end
 
 % Optional exploration of the four algebraic solvers (transonic only).
-RUN_SOLVER_COMPARISON = false;  % true: produce figures of solvers study
+RUN_SOLVER_COMPARISON = true;  % true: produce figures of solvers study
 studySolvers = {'backslash', 'gmres', 'bicgstab', 'gauss-seidel'};
 studyGridSize = [60 40]; % [Nx Ny]; increase for refined-mesh study
 studyMach = 0.91;
@@ -95,7 +95,7 @@ end
 % (Uncomment any line below to override the regime default settings)
 % -------------------------------------------------------------------------
 % p.scheme_x  = 'backward';       % Force backward/upwind scheme (e.g. test instability in subsonic)
- p.scheme_x  = 'central';        % Force central scheme
+% p.scheme_x  = 'central';        % Force central scheme
 % p.scheme_x  = 'transonic_switch';% Force dynamic switch
 % p.bc_outlet = 'extrapolation';  % Force free outflow (no boundary constraint imposed)
 % p.bc_outlet = 'neumann';        % Force zero normal derivative (dphi/dx = 0)

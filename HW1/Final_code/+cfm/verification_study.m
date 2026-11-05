@@ -4,13 +4,37 @@ function out = verification_study(p, v, outDir)
     h = p.xMax ./ v.gridList(:,1);
     eSup = zeros(n, 3);  phiSub = cell(n, 1);  betaNum = zeros(n, 1);
     for k = 1:n
-        q = p;  q.Nx = v.gridList(k,1);  q.Ny = v.gridList(k,2);
+        q = p;
+        q.Nx = v.gridList(k,1);
+        q.Ny = v.gridList(k,2);
+    
+        % -------------------------------------------------
+        % SUPERSONIC CASE
+        % -------------------------------------------------
+        q.scheme_x  = 'backward';
+        q.bc_outlet = 'none';
+    
         s = cfm.solve_flow_fv(q, v.Msup);
-        eSup(k,:)  = cfm.error_l2(s.phiNorm - cfm.exact_supersonic(s.X, s.Y, q, v.Msup), v.nb);
-        betaNum(k) = cfm.wave_angle(s.X, s.Y, s.phiNorm, v.yWave);
+    
+        eSup(k,:) = cfm.error_l2( ...
+            s.phiNorm - cfm.exact_supersonic( ...
+            s.X, s.Y, q, v.Msup), v.nb);
+    
+        betaNum(k) = cfm.wave_angle( ...
+            s.X, s.Y, s.phiNorm, v.yWave);
+    
+        % -------------------------------------------------
+        % SUBSONIC CASE
+        % -------------------------------------------------
+        q.scheme_x  = 'central';
+        q.bc_outlet = 'neumann';
+    
         s = cfm.solve_flow_fv(q, v.Msub);
+    
         phiSub{k} = s.phiNorm;
-        fprintf('verification: grid %d x %d done\n', q.Nx, q.Ny);
+    
+        fprintf('verification: grid %d x %d done\n', ...
+            q.Nx, q.Ny);
     end
 
     % Subsonic: difference between a grid and the next finer one (restricted 2x2 blocks)

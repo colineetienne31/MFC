@@ -19,7 +19,7 @@ p.y_limits = [1e-14, 1e1];  % Y-axis limits for plots (fixed for comparison)
 % =========================================================================
 % 2. Test Case Selection (Wave number k)
 % =========================================================================
-test_case = 'low_k'; % Options: 'low_k', 'high_k', 'all'
+test_case = 'all'; % Options: 'low_k', 'high_k', 'all'
 
 if strcmpi(test_case, 'low_k')
     p.k_values = [0.02];
@@ -28,14 +28,6 @@ elseif strcmpi(test_case, 'high_k')
 elseif strcmpi(test_case, 'all')
     p.k_values = [0.02, 0.2];
 end
-
-% -------------------------------------------------------------------------
-% Manual overrides for parametric testing
-% (Uncomment any line below to override defaults)
-% -------------------------------------------------------------------------
-% p.k_values = [0.5, 1.0];  % Test custom high-frequency wave numbers
-% p.x0       = 10;          % Evaluate error at a different spatial point
-% p.n_h      = 150;         % Increase plot resolution (more h points)
 
 % =========================================================================
 % 3. Execution (Calls to +cfm module)

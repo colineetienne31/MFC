@@ -46,11 +46,9 @@ function sol = solve_flow_fv(p, Minf)
     while ~converged && iterations < p.maxitNonlinear
         iterations = iterations + 1;
         
-        % create matrix A and vector b
         [A, b] = cfm.assemble_flow_matrix(grid, p, Minf, U_inf, phi_current);
-        
-        % Solve the linear system
         [phi_new, ~, ~, ~] = cfm.solve_sparse_system(A, b, p);
+        phi_new = phi_new(:);
         
         if Minf >= 0.8 && Minf <= 1.2 
             phi_new = p.relaxation*phi_new + (1-p.relaxation)*phi_current;
