@@ -18,7 +18,7 @@ T1 = L/a;
 T2 = 2*L/a;
 N1_steps = round(T1/dt);
 N2_steps = round(T2/dt);
-b_blend = (1+nu)/3; % 0.6 at nu=0.8: leading phase-error cancellation
+b_blend = 0.6; % 0.6 at nu=0.8: leading phase-error cancellation
 
 %% Output folders (inside a Figures folder next to this .m file)
 script_dir = fileparts(mfilename('fullpath'));
@@ -197,67 +197,6 @@ for p = 1:2
 
 end
 
-%% LW-BW stability, diffusion and dispersion
-% Each nu gets one figure per category, using the same b values.
-theta = linspace(-pi,pi,2001);
-theta_pos = linspace(0,pi,1001);
-nu_values = [0.8,1,1.5,2];
-b_values = linspace(0,1,5);
-legend_b = arrayfun(@(b)sprintf('b = %.2f',b),b_values,'UniformOutput',false);
-
-for k = 1:length(nu_values)
-    nu_k = nu_values(k);
-    fig_stability = square_figure(); hold on;
-    plot(cos(theta),sin(theta),'k--','LineWidth',1.5);
-    fig_diffusion = square_figure(); hold on;
-    fig_dispersion = square_figure(); hold on;
-
-    for j = 1:length(b_values)
-        b = b_values(j);
-        G_LW = 1-1i*nu_k*sin(theta)+nu_k^2*(cos(theta)-1);
-        G_BW = 1-nu_k/2*(3-4*exp(-1i*theta)+exp(-2i*theta)) ...
-                 +nu_k^2/2*(1-2*exp(-1i*theta)+exp(-2i*theta));
-        G = (1-b)*G_LW+b*G_BW;
-        figure(fig_stability);
-        plot(real(G),imag(G),'LineWidth',1.5);
-
-        G_pos = G(theta>=0);
-        E_diff = 1-abs(G_pos);
-        phase_num = unwrap(angle(G_pos));
-        E_disp = phase_num+nu_k*theta_pos;
-        E_disp(abs(G_pos)<1e-10) = NaN;
-        figure(fig_diffusion);
-        plot(theta_pos,E_diff,'LineWidth',1.5);
-        figure(fig_dispersion);
-        plot(theta_pos,E_disp,'LineWidth',1.5);
-    end
-
-    figure(fig_stability);
-    axis equal; grid on;
-    xlabel('Re(G)'); ylabel('Im(G)');
-    title(sprintf('LW-BW Stability - nu = %.2f',nu_k));
-    legend([{'|G| = 1'},legend_b],'Location','best');
-    hold off;
-    save_figure(fig_stability,folders.stability,sprintf('Stability_nu_%0.2f',nu_k));
-
-    figure(fig_diffusion);
-    yline(0,'k--','HandleVisibility','off');
-    xlabel('\theta = k\Deltax'); ylabel('1 - |G|');
-    title(sprintf('LW-BW Diffusive Error - nu = %.2f',nu_k));
-    legend(legend_b,'Location','best'); grid on; hold off;
-    save_figure(fig_diffusion,folders.diffusion,sprintf('Diffusive_Error_nu_%0.2f',nu_k));
-
-    figure(fig_dispersion);
-    yline(0,'k--','HandleVisibility','off');
-    xlabel('\theta = k\Deltax'); ylabel('Phase error (rad/step)');
-    title(sprintf('LW-BW Dispersive Error - nu = %.2f',nu_k));
-    legend(legend_b,'Location','best'); grid on; hold off;
-    save_figure(fig_dispersion,folders.dispersion,sprintf('Dispersive_Error_nu_%0.2f',nu_k));
-    close(fig_stability);
-    close(fig_diffusion);
-    close(fig_dispersion);
-end
-fprintf('All plots saved under: %s\n',output_dir);
 
 %% Local functions (MATLAB requires these at the end of a script)
 function u_new = explicit_upwind(u,nu)
