@@ -1,9 +1,9 @@
 %% LW-BW blend: stability limit nu_max(b) and choice of b (standalone)
 clear; close all; clc;
  
-set(groot, 'defaultAxesFontSize', 16);
-set(groot, 'defaultTextFontSize', 16);
-set(groot, 'defaultLegendFontSize', 16);
+set(groot, 'defaultAxesFontSize', 20);
+set(groot, 'defaultTextFontSize', 19);
+set(groot, 'defaultLegendFontSize', 19);
  
 %% Parameters (same as Task_1.m)
 L = 200;
