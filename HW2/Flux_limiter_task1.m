@@ -1,9 +1,9 @@
 %% Flux limiter: own design + classical limiters, Sweby diagram and extras (standalone)
 clear; close all; clc;
  
-set(groot, 'defaultAxesFontSize', 16);
-set(groot, 'defaultTextFontSize', 16);
-set(groot, 'defaultLegendFontSize', 16);
+set(groot, 'defaultAxesFontSize', 20);
+set(groot, 'defaultTextFontSize', 19);
+set(groot, 'defaultLegendFontSize', 19);
  
 %% Parameters (same as Task_1.m)
 L = 200;
@@ -164,24 +164,34 @@ for p = 1:2
         end
     end
  
-    % Error evolution and total variation (all schemes)
-    fig_errors = square_figure();
-    ax = axes('Parent',fig_errors);
-    plot(ax,time,error_L1,'LineWidth',1.5);
-    xlabel(ax,'Time'); ylabel(ax,'Mean absolute error');
-    title(ax,[pulse_names{p},' - limiters L1 error evolution']);
-    legend(ax,scheme_names,'Location','best'); grid(ax,'on');
-    save_figure(fig_errors,folders.sim_errors,['Error_L1_Limiters_',pulse_file]);
-    close(fig_errors);
- 
-    fig_errors = square_figure();
-    ax = axes('Parent',fig_errors);
-    plot(ax,time,error_Linf,'LineWidth',1.5);
-    xlabel(ax,'Time'); ylabel(ax,'Maximum absolute error');
-    title(ax,[pulse_names{p},' - limiters Linf error evolution']);
-    legend(ax,scheme_names,'Location','best'); grid(ax,'on');
-    save_figure(fig_errors,folders.sim_errors,['Error_Linf_Limiters_',pulse_file]);
-    close(fig_errors);
+    % Error evolution: limiters only (comparison between limiters)
+    % and all schemes (global comparison, including upwind and blend)
+    error_sets = {3:n_schemes, 1:n_schemes};
+    error_tags = {'Limiters', 'AllSchemes'};
+    error_norms = {'L1', 'Linf'};
+    error_labels = {'Mean absolute error', 'Maximum absolute error'};
+    error_data = {error_L1, error_Linf};
+    for q = 1:2
+        cols = error_sets{q};
+        set_colors = lines(numel(cols));
+        for m = 1:2
+            fig_errors = square_figure();
+            ax = axes('Parent',fig_errors);
+            hold(ax,'on');
+            for c = 1:numel(cols)
+                plot(ax,time,error_data{m}(:,cols(c)),'-','Color',set_colors(c,:), ...
+                    'LineWidth',1.5);
+            end
+            xlabel(ax,'Time'); ylabel(ax,error_labels{m});
+            title(ax,sprintf('%s - %s error evolution (%s)',pulse_names{p}, ...
+                error_norms{m},lower(error_tags{q})));
+            legend(ax,scheme_names(cols),'Location','best'); grid(ax,'on');
+            hold(ax,'off');
+            save_figure(fig_errors,folders.sim_errors, ...
+                sprintf('Error_%s_%s_%s',error_norms{m},error_tags{q},pulse_file));
+            close(fig_errors);
+        end
+    end
  
     fig_tv = square_figure();
     ax = axes('Parent',fig_tv);
